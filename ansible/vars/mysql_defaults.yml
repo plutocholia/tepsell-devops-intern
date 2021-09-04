@@ -1,0 +1,11 @@
+mysql_root_password: MySQL123Password
+
+mysql_db_data_file_name: movies_table_creator.sql
+mysql_dest_db_data_file_dir: /root/mysql_data
+
+mysql_db_name: db_movies
+mysql_db_user: movier
+mysql_db_password: movier_MySQL123Password
+mysql_remote_host: [10.0.49.3, 172.28.3.101]
+
+mysql_bind_interface: 0.0.0.0

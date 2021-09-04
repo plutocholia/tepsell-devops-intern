@@ -1,0 +1,55 @@
+---
+
+- hosts: db_servers
+  become: true
+  vars_files:
+    - vars/mysql_defaults.yml
+
+  tasks:
+    - name: create mysql data directory
+      tags: clean
+      file:
+        path: "{{ mysql_dest_db_data_file_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0775
+      
+    - name: copy movies_table_creator.sql
+      tags: clean
+      copy:
+        src: "./files/{{ mysql_db_data_file_name }}"
+        dest: "{{ mysql_dest_db_data_file_dir }}/{{ mysql_db_data_file_name }}"
+        owner: root
+        group: root
+        mode: 0644
+    
+    - name: import mysql data
+      tags: clean
+      community.mysql.mysql_db:
+        state: import
+        name: all
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        target: "{{ mysql_dest_db_data_file_dir }}/{{ mysql_db_data_file_name }}"
+
+    - name: Create user with password with all database privileges and grant option
+      tags: clean, new-user
+      community.mysql.mysql_user:
+        state: present
+        name: "{{ mysql_db_user }}"
+        password: "{{ mysql_db_password }}"
+        priv: "{{ mysql_db_name }}.*:ALL,GRANT"
+        host: "{{ item }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+      with_items:
+        - "{{ mysql_remote_host }}"
+        - "{{ ansible_hostname }}"
+        - 127.0.0.1
+        - ::1
+        - localhost

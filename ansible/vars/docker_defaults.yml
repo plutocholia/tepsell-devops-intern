@@ -1,0 +1,3 @@
+num_of_containers: 4
+container_name: docker
+container_image: ubuntu

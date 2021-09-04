@@ -1,0 +1,39 @@
+---
+
+- hosts: db_servers
+  become: true
+  vars_files:
+    - vars/redis_defaults.yml
+  
+  pre_tasks:
+    - name: installing updates (Ubuntu)
+      tags: always
+      apt:
+        upgrade: dist
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
+  
+  tasks:
+    - name: redis installation
+      apt: 
+        name: redis-server 
+        state: latest
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
+    
+    - name: template redis.config.j2 to remote host
+      tags: redis_config
+      template:
+        src: templates/redis.conf.j2
+        dest: /etc/redis/redis.conf
+        owner: redis
+        group: redis
+        mode: 0640
+      notify: restarting redis
+    
+  handlers:
+    - name: restarting redis
+      service: 
+        name: redis
+        state: restarted 
+        enabled: yes

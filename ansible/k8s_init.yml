@@ -1,0 +1,132 @@
+---
+
+- hosts: web_servers
+  become: true
+  vars_files:
+    - vars/k8s_defaults.yml
+  
+  pre_tasks:
+    - name: installing updates (Ubuntu)
+      tags: always
+      apt:
+        upgrade: dist
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"====
+
+  tasks:
+    - name: Remove swapfile from /etc/fstab
+      mount:
+        name: "{{ item }}"
+        fstype: swap
+        state: absent
+      with_items:
+        - swap
+        - none
+
+    - name: Disable swap
+      command: swapoff -a
+      when: ansible_swaptotal_mb > 0
+
+    - name: Make sure that the br_netfilter module is loaded.
+      copy:
+        dest: "/etc/modules-load.d/k8s.conf"
+        content: |
+          br_netfilter
+
+    - name: ensure net.bridge.bridge-nf-call-iptables is set to 1 in sysctl config
+      copy:
+        dest: "/etc/sysctl.d/k8s.conf"
+        content: |
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.bridge.bridge-nf-call-iptables = 1
+    
+    - name: Apply sysctl params without reboot
+      command: "sysctl --system"
+
+    - name: adding google clound's official GPG-key
+      apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        # keyring: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+        state: present
+
+    - name: add docker repository (Ubuntu)
+      apt_repository:
+        repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+        filename: kubernetes.list
+      when: ansible_distribution == "Ubuntu"
+
+    - name: update apt and install kubectl and containerd (Ubuntu)
+      apt:
+        name:
+          - kubectl
+          - kubeadm
+          - kubelet
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == "Ubuntu"
+
+    - name: Hold kubeadm, kubelet and kubectl
+      dpkg_selections:
+        name: "{{ item }}"
+        selection: hold
+      with_items:
+        - kubeadm
+        - kubelet
+        - kubectl
+
+    # - name: using containerd as CRI Runtime (1)
+    #   tags: cgroup
+    #   copy:
+    #     dest: /etc/modules-load.d/containerd.conf
+    #     content: |
+    #       overlay
+    #       br_netfilter
+    
+    # - name: apply overlay and br_netfilter (2)
+    #   tags: cgroup
+    #   command: "modprobe {{ item }}"
+    #   with_items:
+    #     - overlay
+    #     - br_netfilters
+      
+    # - name: Setup required sysctl params, these persist across reboots.
+    #   tags: cgroup
+    #   copy:
+    #     dest: /etc/sysctl.d/99-kubernetes-cri.conf
+    #     content: |
+    #       net.bridge.bridge-nf-call-iptables  = 1
+    #       net.ipv4.ip_forward                 = 1
+    #       net.bridge.bridge-nf-call-ip6tables = 1
+      
+    # - name: Apply sysctl params without reboot
+    #   tags: cgroup
+    #   command: sysctl --system
+
+
+    # - name: installing containerd
+    #   tags: cgroup
+    #   apt:
+    #     name:
+    #       - containerd.io
+    #     update_cache: yes
+    #     state: latest
+    #   when: ansible_distribution == "Ubuntu"
+
+    
+    # - name: adding br_netfilter to the k8s.conf at modules-load.d
+    #   copy:
+    #     content: br_netfilter
+    #     dest: /etc/modules-load.d/k8s.conf
+
+    # - name: Fix net.bridge.bridge-nf-call-iptables issue (1/2)
+    #   copy:
+    #     content: |
+    #       net.bridge.bridge-nf-call-ip6tables = 1
+    #       net.bridge.bridge-nf-call-iptables = 1
+    #     dest: /etc/sysctl.d/k8s.conf
+    #   register: fix
+
+    # - name: Fix net.bridge.bridge-nf-call-iptables issue (2/2)
+    #   command: sysctl --system
+    #   when: fix.changed

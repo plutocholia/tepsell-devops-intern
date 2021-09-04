@@ -1,0 +1,6 @@
+# redis_bind_interface: 172.28.3.102
+redis_bind_interface: 0.0.0.0
+redis_port: 6379
+redis_password: "Redis123Password"
+redis_protected_mode: "yes"
+redis_databases: 16

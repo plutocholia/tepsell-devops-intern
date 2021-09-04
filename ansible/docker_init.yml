@@ -1,0 +1,57 @@
+---
+
+- hosts: web_servers
+  become: true
+  vars_files:
+    - vars/docker_defaults.yml
+  
+  pre_tasks:
+    - name: installing updates (Ubuntu)
+      tags: always
+      apt:
+        upgrade: dist
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
+
+  tasks:
+    - name: Installing aptitude via apt
+      tags: rep_over_https
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: latest
+        update_cache: yes
+        force_apt_get: yes
+      when: ansible_distribution == "Ubuntu" 
+
+    - name: adding docker's official GPG-key (Ubuntu)
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_distribution == "Ubuntu"
+
+    - name: add docker repository (Ubuntu)
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu {{ansible_distribution_release}} stable
+        state: present
+      when: ansible_distribution == "Ubuntu"
+
+    - name: update apt and install docker-ce, cli and containerd (Ubuntu)
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        update_cache: yes
+        state: latest
+      when: ansible_distribution == "Ubuntu"
+
+    - name: start docker service
+      service: 
+        name: docker
+        state: restarted
+        enabled: yes
