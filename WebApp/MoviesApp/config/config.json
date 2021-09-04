@@ -1,0 +1,24 @@
+{
+    "redis": {
+        "HOST": "172.28.3.102",
+        "PORT": 6379,
+        "PASSWORD": "Redis123Password"
+    },
+
+    "mysql": {
+        "USER": "movier",
+        "PASSWORD": "movier_MySQL123Password",
+        "HOST": "172.28.3.102",
+        "DATABASE_NAME": "db_movies"
+    },
+    
+    "log": {
+        "PATH": "../logs/logs.log"
+    },
+
+    "flask": {
+        "debug": false,
+        "host": "0.0.0.0",
+        "port": 8080
+    }
+}
