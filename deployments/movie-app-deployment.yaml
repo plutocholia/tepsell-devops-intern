@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movie-app-deployment
+  labels:
+    app: movie-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: movie-app
+  template:
+    metadata:
+      labels:
+        app: movie-app
+    spec:
+      containers:
+      - name: movie-app
+        image: plutocholia/movie-app:v1.4
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8080
+      imagePullSecrets:
+      - name: regcred
