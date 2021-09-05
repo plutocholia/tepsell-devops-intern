@@ -11,7 +11,7 @@
       apt:
         upgrade: dist
         update_cache: yes
-      when: ansible_distribution == "Ubuntu"====
+      when: ansible_distribution == "Ubuntu"
 
   tasks:
     - name: Remove swapfile from /etc/fstab
