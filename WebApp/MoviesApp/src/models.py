@@ -151,7 +151,7 @@ class MoviesModel(BaseModel):
 engine = create_engine(
     "mysql+pymysql://"+
     f"{mysql_configs['USER']}:{mysql_configs['PASSWORD']}@{mysql_configs['HOST']}/{mysql_configs['DATABASE_NAME']}",
-    isolation_level="READ COMMITTED", pool_pre_ping=True
+    isolation_level="READ COMMITTED", pool_pre_ping=True, pool_recycle=3600
 )
 
 # reflect the tables
