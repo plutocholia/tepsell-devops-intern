@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: plutocholia/movie-nginx:v1.1
+        image: plutocholia/movie-nginx:v1.2
         imagePullPolicy: Always
         ports:
           - containerPort: 80
