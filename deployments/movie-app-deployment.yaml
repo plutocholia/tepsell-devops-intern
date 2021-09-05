@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: movie-app
-        image: plutocholia/movie-app:v1.4
+        image: plutocholia/movie-app:v1.5
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
