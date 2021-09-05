@@ -1,0 +1,6 @@
+
+# /home/pluto/.ansible/collections/ansible_collections
+Collection      Version
+--------------- -------
+ansible.posix   1.3.0  
+community.mysql 2.1.1  
